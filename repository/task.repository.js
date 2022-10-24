@@ -1,5 +1,5 @@
 const { connect, disconnect } = require('../config/db.config');
-const { Task } = require('../model/task.model');
+const todo = require('../model/task.model');
 const logger = require('../logger/api.logger');
 
 class TaskRepository {
@@ -9,15 +9,23 @@ class TaskRepository {
     }
 
     async getTasks() {
-        const tasks = await Task.find({});
-        console.log('tasks:::', tasks);
+        const tasks = await todo.find();
+        logger.info('Task Repository :: tasks: ', tasks);
+        await console.log('Returned tasks' + tasks);
         return tasks;
+    }
+
+    async getTask(taskId) {
+        const task = await todo.findById(taskId);
+        logger.info('Task Repository :: task: ', task);
+        await console.log('Returned task' + task);
+        return task;
     }
 
     async createTask(task) {
         let data = {};
         try {
-            data = await Task.create(task);
+            data = await todo.create(task);
         } catch(err) {
             logger.error('Error::' + err);
         }
@@ -27,7 +35,9 @@ class TaskRepository {
     async updateTask(task) {
         let data = {};
         try {
-            data = await Task.updateOne(task);
+            let query = {'_id': task._id};
+            await todo.findOneAndUpdate(query, task, {'useFindAndModify': false});
+            data = await todo.findById(task._id); //Returns the upadted todo unlike findOneAndUpdate which returns the old todo data
         } catch(err) {
             logger.error('Error::' + err);
         }
